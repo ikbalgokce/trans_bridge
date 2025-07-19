@@ -3,18 +3,15 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 
 import 'package:trans_bridge/views/app_view.dart';
-import 'package:trans_bridge/views/home_view/home_view.dart';
-import 'package:trans_bridge/views/live_support_view/live_support_view.dart'; // Mevcut canlı destek view'ı
+import 'package:trans_bridge/views/home_view/home_view.dart'; // Ana sayfa
 import 'package:trans_bridge/views/past_view/past_view.dart';
 import 'package:trans_bridge/views/profile_view/profile_view.dart';
-import 'package:trans_bridge/features/sign_language_translation/sign_language_translation_page.dart'; // Senin yeni sayfan
-import 'package:trans_bridge/features/live_support/live_support_page.dart'; // Senin yeni canlı destek sayfası
-import 'package:trans_bridge/features/live_support/live_video_call_page.dart'; // Senin yeni canlı video çağrı sayfası
-
-// Arkadaşının eklediği login/register/forgot password view'ları
-import 'package:trans_bridge/views/login_view.dart';
-import 'package:trans_bridge/views/register_view.dart';
-import 'package:trans_bridge/views/forgot_password_view.dart';
+import 'package:trans_bridge/features/live_support/live_support_page.dart'; // Canlı destek listesi
+import 'package:trans_bridge/features/live_support/live_video_call_page.dart'; // Canlı video görüşmesi
+import 'package:trans_bridge/views/login_view.dart'; // Login sayfası
+import 'package:trans_bridge/views/register_view.dart'; // Register sayfası
+import 'package:trans_bridge/views/forgot_password_view.dart'; // Forgot Password sayfası
+import 'package:trans_bridge/features/sign_language_translation/sign_language_translation_page.dart'; // Basitleştirilmiş sayfa için (isteğe bağlı)
 
 
 final _routerKey = GlobalKey<NavigatorState>();
@@ -26,20 +23,24 @@ class AppRoutes {
   static const String past = '/past';
   static const String livesupport = '/livesupport';
   static const String profile = '/profile';
-  static const String signLanguage = '/sign_language'; // Senin yeni rota
-  static const String liveVideoCall = 'call'; // livesupport altında nested rota olacak
+  static const String liveVideoCall = 'call'; // livesupport altında nested rota
 
-  // Arkadaşının eklediği login/register/forgot password rotaları
+  // Login/Register/Forgot Password rotaları
   static const String login = '/login';
   static const String register = '/register';
   static const String forgotPassword = '/forgot-password';
+
+  // İşaret Dili Çevirisi artık HomeView içinde olduğu için bu rotaya gerek kalmadı.
+  // Ancak, eğer basitleştirilmiş SignLanguageTranslationPage'e erişmek istersen tutabiliriz.
+  // Şimdilik kaldırıyorum, çünkü ana işlevsellik HomeView'da.
+  // static const String signLanguage = '/sign_language'; 
 }
 
 final router = GoRouter(
   navigatorKey: _routerKey,
-  initialLocation: AppRoutes.login, // Uygulamanın başlangıç rotası (login olarak ayarlandı)
+  initialLocation: AppRoutes.login, // Uygulamanın başlangıç rotası hala login
   routes: [
-    // Arkadaşının eklediği login/register/forgot password rotaları
+    // Login, Register, Forgot Password rotaları
     GoRoute(
       path: AppRoutes.login,
       builder: (context, state) => const LoginView(),
@@ -53,6 +54,7 @@ final router = GoRouter(
       builder: (context, state) => const ForgotPasswordView(),
     ),
     
+    // Uygulamanın ana navigasyon yapısı (alt gezinme çubuğu olan sayfalar)
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) =>
           AppView(navigationShell: navigationShell),
@@ -61,7 +63,7 @@ final router = GoRouter(
           routes: [
             GoRoute(
               path: AppRoutes.home,
-              builder: (context, state) => const HomeView(),
+              builder: (context, state) => const HomeView(), // HomeView artık işaret dili çevirisini içeriyor
             ),
           ],
         ),
@@ -77,7 +79,7 @@ final router = GoRouter(
           routes: [
             GoRoute(
               path: AppRoutes.livesupport,
-              builder: (context, state) => const LiveSupportPage(), // Burayı LiveSupportView yerine LiveSupportPage olarak güncelliyoruz
+              builder: (context, state) => const LiveSupportPage(), // Canlı destek listesi sayfası
               routes: [
                 GoRoute(
                   path: AppRoutes.liveVideoCall + '/:volunteerName', // /livesupport/call/:volunteerName
@@ -100,12 +102,13 @@ final router = GoRouter(
         ),
       ],
     ),
-    // Senin yeni işaret dili çeviri sayfasını doğrudan routes listesine ekle (StatefulShellRoute dışında)
-    GoRoute(
-      path: AppRoutes.signLanguage,
-      builder: (BuildContext context, GoRouterState state) {
-        return const SignLanguageTranslationPage();
-      },
-    ),
+    // Eğer basitleştirilmiş SignLanguageTranslationPage'i hala bir rota olarak tutmak istersen
+    // GoRoute(
+    //   path: AppRoutes.signLanguage,
+    //   builder: (BuildContext context, GoRouterState state) {
+    //     return const SignLanguageTranslationPage();
+    //   },
+    // ),
   ],
 );
+

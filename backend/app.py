@@ -31,39 +31,74 @@ MIN_WORDS_FOR_SPEECH = 1 # Konuşma için minimum kelime sayısı (tek kelime de
 
 # Senin inference.py dosyasından alınan form_sentence mantığı buraya entegre edildi
 def form_sentence(words):
-    # Kelimeleri küçük harfe çevir
-    words = [w.lower() for w in words]
+    # Kelimeleri küçük harfe çevir ve boşlukları temizle
+    words = [w.lower().strip() for w in words] # Her kelimenin başındaki/sonundaki boşlukları temizle
 
     # Basit kural örnekleri
     if 'dur' in words:
         return "Lütfen dur."
 
     subjects = {'anne', 'baba', 'kardeş', 'arkadaş'}
-    verbs = {'içmek', 'özür-dileme', 'yemek', 'dur'} # 'dur' kelimesi hem fiil hem de komut olabilir
+    verbs = {'içmek', 'özür-dilemek', 'yemek'} # 'özür-dileme' yerine 'özür-dilemek' olarak düzeltildi
 
     subject_word = None
     verb_word = None
     other_words = []
 
+    # Kelimeleri özneler ve fiiller olarak ayır
     for w in words:
-        if w in subjects:
+        if w in subjects and subject_word is None: # Sadece ilk özneyi al
             subject_word = w
-        elif w in verbs:
+        elif w in verbs and verb_word is None: # Sadece ilk fiili al
             verb_word = w
         else:
-            other_words.append(w)
+            other_words.append(w) # Diğer kelimeleri tut
 
-    # Özne ve fiil kombinasyonları
+    # Yeni eklenen spesifik kurallar
+    if subject_word == 'anne':
+        if verb_word == 'yemek':
+            return "Anne yiyor."
+        elif verb_word == 'özür-dilemek': # Düzeltildi
+            return "Anne özür dilerim."
+        elif verb_word == 'içmek':
+            return "Anne içiyor."
+    
+    if subject_word == 'kardeş':
+        if verb_word == 'yemek':
+            return "Kardeş yiyor."
+        elif verb_word == 'özür-dilemek': # Düzeltildi
+            return "Kardeş özür dilerim."
+        elif verb_word == 'içmek':
+            return "Kardeş içiyor."
+
+    if subject_word == 'baba':
+        if verb_word == 'yemek':
+            return "Baba yiyor."
+        elif verb_word == 'özür-dilemek': # Düzeltildi
+            return "Baba özür dilerim."
+        elif verb_word == 'içmek':
+            return "Baba içiyor."
+            
+    if subject_word == 'arkadaş':
+        if verb_word == 'yemek':
+            return "Arkadaş yemek yiyor."
+        elif verb_word == 'özür-dilemek': # Düzeltildi
+            return "Arkadaşım özür dilerim."
+        elif verb_word == 'içmek': # Arkadaş + içmek için spesifik bir kural verilmemiş, genel kurala düşecek
+            pass # Bu durumda aşağıda genel fiil çekimine düşecek
+
+
+    # Genel özne ve fiil kombinasyonları (eğer yukarıdaki spesifik kurallara uymuyorsa)
     if subject_word and verb_word:
         formatted_verb = verb_word
         if verb_word == 'içmek':
             formatted_verb = 'içiyor'
-        elif verb_word == 'özür-dileme':
+        elif verb_word == 'özür-dilemek': # Düzeltildi
             formatted_verb = 'özür diliyor'
         elif verb_word == 'yemek':
             formatted_verb = 'yiyor'
         
-        # Diğer kelimeleri de cümleye ekle
+        # Diğer kelimeleri de cümleye ekle (eğer spesifik kural yoksa)
         if other_words:
             return f"{subject_word.capitalize()} {' '.join(other_words)} {formatted_verb}."
         return f"{subject_word.capitalize()} {formatted_verb}."
@@ -176,11 +211,9 @@ def process_frame():
                 last_word_detection_time = 0.0
 
 
-        # Buradaki return jsonify bloğunda bir sözdizimi hatası oluşmuş olabilir.
-        # Aşağıdaki formatın doğru olduğundan emin olalım.
         return jsonify({
-            'detected_text': display_text,
-            'audio_base64': audio_base64
+            'detected_text': display_text, # Ekranda gösterilecek birikmiş metin
+            'audio_base64': audio_base64 # Sadece yeni bir cümle oluştuğunda ses
         })
 
     except Exception as e:
